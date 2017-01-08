@@ -30,4 +30,12 @@
         <item>Sebastopol</item>
     </string-array>
 
+    <!-- Main list -->
+    <string-array name="titles">
+        <item>Home</item>
+        <item>Pizzas</item>
+        <item>Pasta</item>
+        <item>Stores</item>
+    </string-array>
+
 </resources>
