@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +21,7 @@ public class MainActivity extends Activity {
 
     private String[] mTitles;
     private ListView mDrawerList;
+    private DrawerLayout mDrawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +29,14 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mTitles = getResources().getStringArray(R.array.titles);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.drawer_listview);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mTitles));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
+        if(savedInstanceState == null){
+            selectItem(0);
+        }
     }
 
     //create menu
@@ -49,8 +55,12 @@ public class MainActivity extends Activity {
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-            //?
+            //changing fragment
             selectItem(position);
+            //changing title in bar
+            setActionBarTitle(position);
+            //close drawer
+            closeDrawer();
         }
     }
 
@@ -75,6 +85,22 @@ public class MainActivity extends Activity {
         ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
+    }
+
+    private void setActionBarTitle(int position){
+        String title;
+        if(position == 0){
+            title = getResources().getString(R.string.title_top);
+        }else {
+            title = mTitles[position];
+        }
+
+        getActionBar().setTitle(title);
+    }
+
+    private void closeDrawer(){
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(mDrawerList);
     }
 
     private void setIntent(String text){
