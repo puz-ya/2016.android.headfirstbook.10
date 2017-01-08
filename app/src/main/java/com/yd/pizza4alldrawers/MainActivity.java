@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,8 +22,10 @@ public class MainActivity extends Activity {
     ShareActionProvider mShareActionProvider;
 
     private String[] mTitles;
+
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
+    ActionBarDrawerToggle mActionBarDrawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +34,29 @@ public class MainActivity extends Activity {
 
         mTitles = getResources().getStringArray(R.array.titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerLayout.addDrawerListener(mActionBarDrawerToggle);    //open or closed?
+
         mDrawerList = (ListView) findViewById(R.id.drawer_listview);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mTitles));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
+        mActionBarDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open_drawer, R.string.close_drawer){
+
+            @Override
+            public void onDrawerClosed(View view){
+                super.onDrawerClosed(view);
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerOpened(View view){
+                super.onDrawerOpened(view);
+                invalidateOptionsMenu();
+            }
+        };
+
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setHomeButtonEnabled(true);
 
         if(savedInstanceState == null){
             selectItem(0);
@@ -103,6 +127,27 @@ public class MainActivity extends Activity {
         drawerLayout.closeDrawer(mDrawerList);
     }
 
+
+    @Override
+    protected void onPostCreate(Bundle savedInstance){
+        super.onPostCreate(savedInstance);
+        mActionBarDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
+        mActionBarDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu){
+        boolean drawerOpened = mDrawerLayout.isDrawerOpen(mDrawerList);
+        menu.findItem(R.id.action_share).setVisible(!drawerOpened);
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
     private void setIntent(String text){
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
@@ -114,6 +159,12 @@ public class MainActivity extends Activity {
     //listen to menu clicks
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
+
+        //listen for click on Toggle button in ActionBar
+        if(mActionBarDrawerToggle.onOptionsItemSelected(menuItem)){
+            return true;
+        }
+
         switch (menuItem.getItemId()){
             case R.id.action_create_order:
                 //code here
