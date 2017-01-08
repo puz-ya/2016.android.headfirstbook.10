@@ -2,6 +2,7 @@ package com.yd.pizza4alldrawers;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -20,6 +21,9 @@ public class MainActivity extends Activity {
 
     //for Share button
     ShareActionProvider mShareActionProvider;
+
+    //position of ListView
+    private int mCurrentPosition = 0;
 
     private String[] mTitles;
 
@@ -55,12 +59,43 @@ public class MainActivity extends Activity {
             }
         };
 
+        //set button
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
 
-        if(savedInstanceState == null){
+        //load position
+        if(savedInstanceState != null){
+            mCurrentPosition = savedInstanceState.getInt("position");
+            setActionBarTitle(mCurrentPosition);
+        }else{
             selectItem(0);
         }
+
+        //Back button and BackStack
+        getFragmentManager().addOnBackStackChangedListener(
+                new FragmentManager.OnBackStackChangedListener() {
+                    @Override
+                    public void onBackStackChanged() {
+                        FragmentManager fragmentManager = getFragmentManager();
+                        Fragment fragment = fragmentManager.findFragmentByTag("visible_fragment");
+                        if (fragment instanceof TopFragment) {
+                            mCurrentPosition = 0;
+                        }
+                        if (fragment instanceof PizzaFragment) {
+                            mCurrentPosition = 1;
+                        }
+                        if (fragment instanceof PastaFragment) {
+                            mCurrentPosition = 2;
+                        }
+                        if (fragment instanceof StoresFragment) {
+                            mCurrentPosition = 3;
+                        }
+
+                        setActionBarTitle(mCurrentPosition);
+                        mDrawerList.setItemChecked(mCurrentPosition, true);
+                    }
+                }
+        );
     }
 
     //create menu
@@ -89,7 +124,9 @@ public class MainActivity extends Activity {
     }
 
     private void selectItem(int position){
+        mCurrentPosition = position;
         Fragment fragment;
+
         switch (position){
             case 1:
                 fragment = new PizzaFragment();
@@ -105,7 +142,7 @@ public class MainActivity extends Activity {
         }
 
         FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.replace(R.id.content_frame, fragment);
+        ft.replace(R.id.content_frame, fragment, "visible_fragment");   //added Tag to fragment
         ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
@@ -178,5 +215,11 @@ public class MainActivity extends Activity {
             default:
                 return super.onOptionsItemSelected(menuItem);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState){
+        super.onSaveInstanceState(outState);
+        outState.putInt("position", mCurrentPosition);
     }
 }
